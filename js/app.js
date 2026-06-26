@@ -34,6 +34,16 @@ function showScreen(screenName) {
     targetScreen.classList.add('active');
     state.currentScreen = screenName;
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    if (screenName === 'simulation') {
+      initSimulation();
+    }
+    if (screenName === 'results') {
+      displayResults();
+    }
+    if (screenName === 'report') {
+      displayReport();
+    }
   }
 }
 
@@ -356,9 +366,63 @@ function displayReport() {
   const profile = state.userProfile;
   const topCareer = state.recommendedCareers[0];
   const name = state.userData.name || 'toi';
+  const reportSummary = document.getElementById('report-summary');
+  const parentMessage = document.getElementById('parent-message');
+  const fieldsList = document.getElementById('fields-list');
+  const careersCatalog = document.getElementById('careers-catalog');
+  const schoolsList = document.getElementById('schools-list');
+  const scholarshipsList = document.getElementById('scholarships-list');
+
+  if (!profile || !state.recommendedCareers.length) {
+    const defaultFields = Array.from(new Set(CAREERS.flatMap(career => career.fields))).slice(0, 8);
+    const defaultSchools = SCHOOLS.slice(0, 6);
+
+    reportSummary.innerHTML = `
+      <p><strong>ALITCHÉ</strong> te propose un aperçu des meilleures filières et écoles au Bénin,
+      même si tu n'as pas encore fait le test.</p>
+      <p style="margin-top: 0.75rem;">Commence par "Commencer mon diagnostic" pour obtenir un rapport personnalisé.
+      En attendant, voici des filières et établissements recommandés.</p>
+    `;
+
+    parentMessage.innerHTML = `
+      <p>Pour convaincre tes parents, montre-leur que tu explores déjà des filières sérieuses et des écoles reconnues au Bénin.</p>
+    `;
+
+    fieldsList.innerHTML = `
+      <div class="detail-row">
+        ${defaultFields.map(f => `<span class="detail-badge badge-blue" style="font-size: 0.9rem; padding: 0.5rem 1rem;">${f}</span>`).join('')}
+      </div>
+    `;
+
+    careersCatalog.innerHTML = CAREERS.slice(0, 8).map(career => `
+      <div class="feature-card">
+        <div class="feature-icon">🏆</div>
+        <h3>${career.name}</h3>
+        <p>${career.category}</p>
+        <p style="font-size: 0.9rem; color: var(--gray-medium);">Salaires estimés : ${career.salary}</p>
+      </div>
+    `).join('');
+
+    schoolsList.innerHTML = defaultSchools.map(school => `
+      <div style="margin-bottom: 1rem; padding: 1rem; background: var(--gray-pale); border-radius: var(--r-md);">
+        <strong style="color: var(--indigo);">${school.name}</strong>
+        <p style="font-size: 0.9rem; color: var(--gray-dark); margin: 0.25rem 0;">${school.fullName}</p>
+        <p style="font-size: 0.85rem; color: var(--gray-medium);">⏱️ ${school.duration} | 💰 ${school.cost}</p>
+      </div>
+    `).join('');
+
+    scholarshipsList.innerHTML = SCHOLARSHIPS.slice(0, 4).map(s => `
+      <div style="margin-bottom: 0.75rem; padding: 0.875rem 1rem; background: var(--orange-light); border-radius: var(--r-md);">
+        <strong style="color: var(--orange);">🎓 ${s.name}</strong>
+        <p style="font-size: 0.85rem; color: var(--gray-dark); margin-top: 0.25rem;">${s.description}</p>
+      </div>
+    `).join('');
+
+    return;
+  }
 
   // Synthèse
-  document.getElementById('report-summary').innerHTML = `
+  reportSummary.innerHTML = `
     <p><strong>${name}</strong>, ton profil dominant est <strong>${profile.name}</strong>.
     Le métier le plus compatible avec ton profil est <strong>${topCareer.name}</strong>
     avec un score de compatibilité de <strong>${topCareer.compatibility}%</strong>.</p>
@@ -367,16 +431,18 @@ function displayReport() {
   `;
 
   // Message pour les parents
+  const secondCareer = state.recommendedCareers[1] || topCareer;
+  const thirdCareer = state.recommendedCareers[2] || topCareer;
+  const topCareerNames = [topCareer.name, secondCareer.name, thirdCareer.name].filter(Boolean).join(', ');
+
   document.getElementById('parent-message').innerHTML = `
     <p>"Suite à un test de personnalité réalisé sur ALITCHÉ, ${name} a un profil de type
     <strong>${profile.name}</strong>. Les métiers les plus recommandés pour ${name} sont
-    <strong>${topCareer.name}</strong>, ${state.recommendedCareers[1].name} et
-    ${state.recommendedCareers[2].name}. Ces métiers sont en demande au Bénin et correspondent
+    <strong>${topCareerNames}</strong>. Ces métiers sont en demande au Bénin et correspondent
     aux forces naturelles de ${name}."</p>
   `;
 
   // Filières recommandées (basées sur le top 3 métiers)
-  const fieldsList = document.getElementById('fields-list');
   const allFields = new Set();
   state.recommendedCareers.slice(0, 3).forEach(career => {
     career.fields.forEach(f => allFields.add(f));
@@ -388,7 +454,6 @@ function displayReport() {
   `;
 
   // Établissements
-  const schoolsList = document.getElementById('schools-list');
   const allSchools = new Set();
   state.recommendedCareers.slice(0, 3).forEach(career => {
     career.schools.forEach(s => allSchools.add(s));
@@ -423,7 +488,6 @@ function displayReport() {
   schoolsList.innerHTML = schoolsHTML;
 
   // Bourses
-  const scholarshipsList = document.getElementById('scholarships-list');
   scholarshipsList.innerHTML = SCHOLARSHIPS.map(s => `
     <div style="margin-bottom: 0.75rem; padding: 0.875rem 1rem; background: var(--orange-light); border-radius: var(--radius-md);">
       <strong style="color: var(--orange);">🎓 ${s.name}</strong>
@@ -553,6 +617,66 @@ function handleCoachEnter(event) {
   }
 }
 
+function initSimulation() {
+  const careerSelect = document.getElementById('simulation-career-select');
+  careerSelect.innerHTML = CAREERS.map(career => `<option value="${career.name}">${career.name}</option>`).join('');
+  if (CAREERS.length > 0) {
+    updateSimulationFields(CAREERS[0].name);
+  }
+}
+
+function updateSimulationFields(careerName) {
+  const career = CAREERS.find(item => item.name === careerName) || CAREERS[0];
+  const fieldSelect = document.getElementById('simulation-field-select');
+  const schoolSelect = document.getElementById('simulation-school-select');
+
+  fieldSelect.innerHTML = career.fields.map(field => `<option value="${field}">${field}</option>`).join('');
+  schoolSelect.innerHTML = career.schools.map(school => `<option value="${school}">${school}</option>`).join('');
+  updateSimulationPreview();
+}
+
+function updateSimulationPreview() {
+  const careerName = document.getElementById('simulation-career-select').value;
+  const selectedField = document.getElementById('simulation-field-select').value;
+  const selectedSchool = document.getElementById('simulation-school-select').value;
+  const career = CAREERS.find(item => item.name === careerName) || CAREERS[0];
+  const summary = document.getElementById('simulation-summary');
+  const timeline = document.getElementById('simulation-timeline');
+  const metrics = document.getElementById('simulation-metrics');
+
+  const estimatedSalary = career.salary;
+  const demand = career.demand;
+  const demandGrowth = career.demandGrowth;
+  const fields = career.fields.join(' • ');
+  const schools = career.schools.join(', ');
+
+  summary.innerHTML = `
+    <h4>Résumé du métier</h4>
+    <p><strong>${career.name}</strong> — ${career.category}</p>
+    <p>Filière choisie : <strong>${selectedField}</strong></p>
+    <p>Établissement choisi : <strong>${selectedSchool}</strong></p>
+    <p>Salaires estimés : <strong>${estimatedSalary}</strong></p>
+    <p>Demande locale : <strong>${demand}</strong></p>
+  `;
+
+  timeline.innerHTML = `
+    <h4>Parcours d'étude simulé</h4>
+    <div class="simulation-step"><span>1</span><div><strong>Étape 1</strong><p>Choisis la filière <strong>${selectedField}</strong> et prépare ton dossier.</p></div></div>
+    <div class="simulation-step"><span>2</span><div><strong>Étape 2</strong><p>Intègre <strong>${selectedSchool}</strong> pour suivre la formation.</p></div></div>
+    <div class="simulation-step"><span>3</span><div><strong>Étape 3</strong><p>Complète 3 à 5 ans de cours et projets pratiques.</p></div></div>
+    <div class="simulation-step"><span>4</span><div><strong>Étape 4</strong><p>Valide ton stage et ta première expérience professionnelle.</p></div></div>
+    <div class="simulation-step"><span>5</span><div><strong>Étape 5</strong><p>Accède à un emploi cible avec un salaire prévu de ${estimatedSalary}.</p></div></div>
+  `;
+
+  metrics.innerHTML = `
+    <h4>Indicateurs clés</h4>
+    <p>Demande : <strong>${demand}</strong></p>
+    <p>Croissance projetée : <strong>${demandGrowth}</strong></p>
+    <p>Établissement choisi : <strong>${selectedSchool}</strong></p>
+    <p>Filière choisie : <strong>${selectedField}</strong></p>
+  `;
+}
+
 function generateCoachResponse(message) {
   const msg = message.toLowerCase();
 
@@ -598,4 +722,22 @@ function generateCoachResponse(message) {
 // ============================================
 document.addEventListener('DOMContentLoaded', function() {
   console.log('ALITCHÉ - Application initialisée');
+  initSimulation();
 });
+
+window.showScreen = showScreen;
+window.displayReport = displayReport;
+window.updateSimulationFields = updateSimulationFields;
+window.updateSimulationPreview = updateSimulationPreview;
+window.initSimulation = initSimulation;
+window.toggleInterest = toggleInterest;
+window.startQuiz = startQuiz;
+window.selectOption = selectOption;
+window.nextQuestion = nextQuestion;
+window.previousQuestion = previousQuestion;
+window.finishQuiz = finishQuiz;
+window.sendCoachMessage = sendCoachMessage;
+window.sendSuggestion = sendSuggestion;
+window.handleCoachEnter = handleCoachEnter;
+window.toggleCareerDetails = toggleCareerDetails;
+window.shareResult = shareResult;

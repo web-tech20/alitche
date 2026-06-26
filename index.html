@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="light dark">
   <title>ALITCHÉ - Construis ton chemin</title>
   <meta name="description" content="ALITCHÉ - Outil d'orientation académique et professionnelle pour les bacheliers béninois.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -26,6 +27,7 @@
         <ul class="nav-links">
           <li><a href="#" onclick="showScreen('home'); return false;">Accueil</a></li>
           <li><a href="#" onclick="showScreen('about'); return false;">À propos</a></li>
+          <li><a href="#" onclick="displayReport(); showScreen('report'); return false;">Métiers & Filières</a></li>
           <li><a href="#" onclick="showScreen('contact'); return false;">Contact</a></li>
         </ul>
       </nav>
@@ -64,6 +66,46 @@
           <button class="btn btn-primary btn-large" onclick="showScreen('onboarding')">
             <span class="material-symbols-rounded">rocket_launch</span> Commencer mon diagnostic
           </button>
+          <button class="btn btn-secondary btn-large" onclick="displayReport(); showScreen('report');">
+            <span class="material-symbols-rounded">visibility</span> Voir les filières
+          </button>
+        </div>
+
+        <div class="hero-support">
+          <a class="hero-link" href="https://wa.me/?text=Je%20veux%20rejoindre%20le%20groupe%20WhatsApp%20ALITCH%C9" target="_blank" rel="noopener noreferrer">
+            <span class="material-symbols-rounded">whatsapp</span> Rejoindre le groupe WhatsApp
+          </a>
+          <span class="hero-note">Simulation immersive disponible — explore un parcours réel maintenant.</span>
+        </div>
+
+        <div class="hero-visual">
+          <img src="img/WhatsApp%20Image%202026-06-26%20at%2012.55.19%20AM.jpeg" alt="Étudiant utilisant ALITCHÉ" />
+          <div class="hero-visual-tag"><span class="material-symbols-rounded">insights</span> Parcours inspirant d'étudiants béninois</div>
+        </div>
+      </div>
+
+      <div class="feature-grid">
+        <div class="feature-card">
+          <div class="feature-icon"><span class="material-symbols-rounded">school</span></div>
+          <h3>Filières & débouchés</h3>
+          <p>Un aperçu simple des filières recommandées, de leurs débouchés et des salaires estimés au Bénin.</p>
+          <ul>
+            <li>Filières concrètes</li>
+            <li>Universités béninoises</li>
+            <li>Demande locale</li>
+          </ul>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><span class="material-symbols-rounded">vrpano</span></div>
+          <h3>Simulation immersive</h3>
+          <p>Visualise une trajectoire complète de carrière avec étapes d'études, écoles et débouchés.</p>
+          <button class="btn btn-primary btn-small" onclick="showScreen('simulation')">Lancer la simulation</button>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon"><span class="material-symbols-rounded">person_search</span></div>
+          <h3>Parcours personnalisé</h3>
+          <p>Un chemin unique qui te guide selon ton profil, tes objectifs et le marché béninois.</p>
+          <span class="feature-pill">À venir</span>
         </div>
       </div>
 
@@ -92,6 +134,57 @@
           <div class="step-title">Rapport</div>
           <div class="step-desc">Ton plan complet</div>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================ -->
+  <!-- ÉCRAN SIMULATION IMMERSIVE -->
+  <!-- ============================================ -->
+  <section id="screen-simulation" class="screen">
+    <div class="container">
+      <div class="results-header">
+        <img class="report-logo" src="logo.jpeg" alt="ALITCHÉ logo">
+        <h2><span class="material-symbols-rounded">vrpano</span> Simulation immersive</h2>
+        <p style="color: var(--gray-medium);">Teste un parcours réaliste avec filières, établissements et salaires estimés au Bénin.</p>
+      </div>
+
+      <div class="simulation-card">
+        <div class="simulation-illustration">
+          <img src="img/WhatsApp%20Image%202026-06-26%20at%2012.55.18%20AM%20(1).jpeg" alt="Étudiants et simulation" />
+        </div>
+        <div class="simulation-panel">
+          <div class="form-group">
+            <label for="simulation-career-select">Choisis un métier</label>
+            <select id="simulation-career-select" onchange="updateSimulationFields(this.value)"></select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="simulation-field-select">Filière</label>
+              <select id="simulation-field-select" onchange="updateSimulationPreview()"></select>
+            </div>
+            <div class="form-group">
+              <label for="simulation-school-select">Établissement</label>
+              <select id="simulation-school-select" onchange="updateSimulationPreview()"></select>
+            </div>
+          </div>
+
+          <div class="simulation-summary" id="simulation-summary"></div>
+
+          <div class="simulation-timeline" id="simulation-timeline"></div>
+
+          <div class="simulation-metrics" id="simulation-metrics"></div>
+
+          <div class="simulation-notice">
+            <strong>Note :</strong> Ces résultats sont une simulation fonctionnelle basée sur notre base de métiers et écoles au Bénin. Les données réelles seront complétées plus tard.
+          </div>
+        </div>
+      </div>
+
+      <div class="report-actions" style="justify-content: center; gap: 1rem; margin-top: 1.5rem;">
+        <button class="btn btn-secondary" onclick="showScreen('home')"><span class="material-symbols-rounded">arrow_back</span> Retour à l'accueil</button>
+        <button class="btn btn-primary" onclick="displayReport(); showScreen('report')"><span class="material-symbols-rounded">visibility</span> Voir mes filières</button>
       </div>
     </div>
   </section>
@@ -268,6 +361,12 @@
         <div id="fields-list"><!-- Contenu généré par JS --></div>
       </div>
 
+      <!-- Catalogue des métiers -->
+      <div class="report-card">
+        <h3><span class="material-symbols-rounded">work_outline</span> Catalogue des métiers</h3>
+        <div id="careers-catalog" class="catalog-grid"><!-- Contenu généré par JS --></div>
+      </div>
+
       <!-- Établissements -->
       <div class="report-card">
         <h3><span class="material-symbols-rounded">location_city</span> Établissements au Bénin</h3>
@@ -329,6 +428,9 @@
   <!-- IA COACH - Bouton flottant -->
   <!-- ============================================ -->
   <button class="coach-fab" onclick="toggleCoach()" title="IA Coach"><span class="material-symbols-rounded">chat</span></button>
+  <a class="whatsapp-fab" href="https://wa.me/?text=Je%20veux%20rejoindre%20le%20groupe%20WhatsApp%20ALITCH%C9" target="_blank" rel="noopener noreferrer" title="WhatsApp">
+    <span class="material-symbols-rounded">whatsapp</span>
+  </a>
 
   <!-- IA COACH - Panneau de chat -->
   <div class="coach-panel" id="coach-panel">
@@ -362,7 +464,7 @@
   </footer>
 
   <!-- Scripts -->
-  <script src="js/data.js"></script>
-  <script src="js/app.js"></script>
+  <script src="js/data.js" defer></script>
+  <script src="js/app.js" defer></script>
 </body>
 </html>
